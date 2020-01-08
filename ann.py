@@ -16,14 +16,15 @@ X = dataset.iloc[:, 3:13 ].values
 y = dataset.iloc[:, 13].values
 
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.compose import ColumnTransformer
 labelencoder_X_1 = LabelEncoder()
 X[:, 1] = labelencoder_X_1.fit_transform(X[:, 1])              # X_1 is for country
 
 labelencoder_X_2 = LabelEncoder()
 X[:, 2] = labelencoder_X_2.fit_transform(X[:, 2])              # X_2 is for male/female
 
-onehotencoder = OneHotEncoder(categorical_features = [1])
-X = onehotencoder.fit_transform(X).toarray()
+ct = ColumnTransformer([("Country", OneHotEncoder(), [1])], remainder = 'passthrough')
+X = ct.fit_transform(X)
 X = X[:, 1:]
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 0)
