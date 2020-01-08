@@ -40,14 +40,17 @@ X_test = sc.transform(X_test)
 import keras
 from keras.models import Sequential
 from keras.layers import Dense
+from keras.layers import Dropout       # To avoid overfitting by disabling some neurons
 
-                    # Intializing the ANN
+# Intializing the ANN
 classifier = Sequential()                   
-    #   Hidden Layer 1
+        #   Hidden Layer 1
 classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu', input_dim = 11 ))     
-    # Hidden Layer 2                                                                                                
+classifier.add(Dropout(p = 0.1))    #p = fraction of neurons to disablie (0 to 1, gerally less than 0.5 to avoid underfitting)
+        # Hidden Layer 2                                                                                                
 classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu'))
-    # Output Layer
+classifier.add(Dropout(p = 0.1))
+        # Output Layer
 classifier.add(Dense(output_dim = 1, init = 'uniform', activation = 'sigmoid', input_dim = 11 ))
 
 classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'] )
@@ -60,4 +63,4 @@ y_pred = classifier.predict(X_test)
 y_pred = (y_pred > 0.5)
 
 from sklearn.metrics import confusion_matrix
-cm = confusion_matrix(y_test, y_pred)               # accuracy  = (1556 +131 ) /2000 = 0.8435
+cm = confusion_matrix(y_test, y_pred)               # accuracy  = (1564 +115 ) /2000 = 0.8395 
