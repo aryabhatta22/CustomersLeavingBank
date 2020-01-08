@@ -40,27 +40,27 @@ X_test = sc.transform(X_test)
 import keras
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.layers import Dropout       # To avoid overfitting by disabling some neurons
 
-# Intializing the ANN
-classifier = Sequential()                   
-        #   Hidden Layer 1
-classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu', input_dim = 11 ))     
-classifier.add(Dropout(p = 0.1))    #p = fraction of neurons to disablie (0 to 1, gerally less than 0.5 to avoid underfitting)
-        # Hidden Layer 2                                                                                                
-classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu'))
-classifier.add(Dropout(p = 0.1))
-        # Output Layer
-classifier.add(Dense(output_dim = 1, init = 'uniform', activation = 'sigmoid', input_dim = 11 ))
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import GridSearchCV
 
-classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'] )
-    
-classifier.fit(X_train, y_train, batch_size = 10, nb_epoch = 100)
-                                                                         
-# ---------------------- Making prediction & evaluating model---------------------- 
-                                                                         
-y_pred = classifier.predict(X_test)
-y_pred = (y_pred > 0.5)
+def built_classifier(optimizer): #builts ann classifier
+    classifier = Sequential()                   
+    classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu', input_dim = 11 ))                                                 
+    classifier.add(Dense(output_dim = 6, init = 'uniform', activation = 'relu'))
+    classifier.add(Dense(output_dim = 1, init = 'uniform', activation = 'sigmoid', input_dim = 11 ))
+    classifier.compile(optimizer = optimizer, loss = 'binary_crossentropy', metrics = ['accuracy'] )
+    return classifier
 
-from sklearn.metrics import confusion_matrix
-cm = confusion_matrix(y_test, y_pred)               # accuracy  = (1564 +115 ) /2000 = 0.8395 
+classifier = KerasClassifier(build_fn = built_classifier)
+
+parameters = {"batch_size": [10, 25, 32],
+              'nb_epoch': [100, 500],
+              'optimizer': ['adam', 'rmsprop']}
+grid_search  = GridSearchCV(estimator = classifier,
+                            param_grid = parameters,
+                            scoring = 'accuracy',
+                            cv = 10)
+grid_search = grid_search.fit(X_train, y_train)
+best_parameters = grid_search.best_params_
+best_accuracy = grid_search.best_score_
